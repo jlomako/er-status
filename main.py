@@ -51,8 +51,8 @@ df_current = pd.merge(df_current,
                on='hospital_name', how='outer')
 
 # transform cols to numeric
-df_current.iloc[:, 1:] = df_current.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
-
+#df_current.iloc[:, 1:] = df_current.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
+df_current[df_current.columns[1:]] = df_current[df_current.columns[1:]].apply(pd.to_numeric, errors='coerce')
 
 
 options = {
