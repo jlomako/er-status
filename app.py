@@ -1,9 +1,10 @@
 from dash import Dash, dcc, html, Input, Output
+import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 from datetime import timedelta
 
-nr_of_days = 7
+nr_of_days = 14
 
 
 def get_data(file):
@@ -31,7 +32,7 @@ def plot_data(df, x_col, y_col, label, title=None):
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
-    fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D')
+    fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D', template="plotly_white")
     return fig
 
 
@@ -65,9 +66,14 @@ hospitals = list(df_occupancy.columns[1::])
 
 
 # Create app
-app = Dash(__name__)
+#app = Dash(__name__)
 
-# Define layout
+# not working...
+dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc_css])
+
+
+# layout
 app.layout = html.Div([
     html.H1('Montréal Emergency Room Status'),
     html.Div('Sort from highest to lowest by:'),
@@ -75,14 +81,15 @@ app.layout = html.Div([
                    inline=True, value="Patients waiting"),
     dcc.Graph(id='graph-fig-bar'),
     dcc.Markdown('''
-         *Patients Waiting*: The number of patients in the emergency room who are waiting to be seen by a
+         * Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a
          physician.
-         *Patients Total*: The total number of patients in the emergency room, including those 
+         * Patients Total: The total number of patients in the emergency room, including those 
          who are currently waiting to be seen by a physician.
-         *Occupancy Rate*: The occupancy rate refers to the percentage of stretchers that are occupied by patients. 
+         * Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients. 
          An occupancy rate of over 100% indicates that the emergency room is over capacity, 
-         typically meaning that there are more patients than there are stretchers.'''),
-    html.H1('Select a hospital for more information: '),
+         typically meaning that there are more patients than there are stretchers.
+         '''),
+    html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
     dcc.Graph(id='graph-fig')
     ])
@@ -109,6 +116,7 @@ def update_graph(option):
         yaxis_title="",
         xaxis_fixedrange=True,  # switch off annoying zoom functions
         yaxis_fixedrange=True,
+        template="plotly_white",
         bargap=0.1,  # gap between bars
         legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom")
     ).update_traces(
@@ -127,7 +135,6 @@ def update_fig(selected):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
-
     fig = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
     return fig
 
