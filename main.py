@@ -51,7 +51,6 @@ df_current = pd.merge(df_current,
                on='hospital_name', how='outer')
 
 # transform cols to numeric
-#df_current.iloc[:, 1:] = df_current.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
 df_current[df_current.columns[1:]] = df_current[df_current.columns[1:]].apply(pd.to_numeric, errors='coerce')
 
 
@@ -61,10 +60,8 @@ options = {
     "Occupancy Rate": {"selection": "occupancy", "sort": "occupancy", "title": f"Occupancy Rates on {df_occupancy['Date'].max()}"},
 }
 
-#option = st.radio("Sort from highest to lowest by:", options.keys(), horizontal=True)
-#option = "Occupancy Rate"
-
-
+# SELECT HOSPITAL
+hospitals = list(df_occupancy.columns[1::])
 
 
 # Create app
@@ -75,8 +72,19 @@ app.layout = html.Div([
     html.H1('Montréal Emergency Room Status'),
     html.Div('Sort from highest to lowest by:'),
     dcc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
-                   inline=True, value="Occupancy Rate"),
-    dcc.Graph(id='graph-fig-bar')
+                   inline=True, value="Patients waiting"),
+    dcc.Graph(id='graph-fig-bar'),
+    dcc.Markdown('''
+         *Patients Waiting*: The number of patients in the emergency room who are waiting to be seen by a
+         physician.
+         *Patients Total*: The total number of patients in the emergency room, including those 
+         who are currently waiting to be seen by a physician.
+         *Occupancy Rate*: The occupancy rate refers to the percentage of stretchers that are occupied by patients. 
+         An occupancy rate of over 100% indicates that the emergency room is over capacity, 
+         typically meaning that there are more patients than there are stretchers.'''),
+    html.H1('Select a hospital for more information: '),
+    dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
+    dcc.Graph(id='graph-fig')
     ])
 
 
@@ -110,8 +118,18 @@ def update_graph(option):
         cliponaxis=False
     ).update_coloraxes(showscale=False  # remove legend for color_continuous_scale
     ).update_xaxes(showticklabels=False)
-
     return fig_bar
+
+@app.callback(
+    Output('graph-fig', 'figure'),
+    Input('select-hospital', 'value'))
+def update_fig(selected):
+    df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
+                  get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
+    df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
+
+    fig = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
+    return fig
 
 
 # Run app
