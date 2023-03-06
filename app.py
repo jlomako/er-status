@@ -56,7 +56,7 @@ df_current[df_current.columns[1:]] = df_current[df_current.columns[1:]].apply(pd
 
 
 options = {
-    "Patients waiting": {"selection": ['patients_waiting', 'patients_total'] , "sort": 'patients_waiting', "title": f"Patient counts on {df_waiting['Date'].max()}"},
+    "Patients waiting": {"selection": ['patients_waiting', 'patients_total'], "sort": 'patients_waiting', "title": f"Patient counts on {df_waiting['Date'].max()}"},
     "Patients total": {"selection": ['patients_waiting', 'patients_total'], "sort": 'patients_total', "title": f"Patient counts on {df_total['Date'].max()}"},
     "Occupancy Rate": {"selection": "occupancy", "sort": "occupancy", "title": f"Occupancy Rates on {df_occupancy['Date'].max()}"},
 }
@@ -68,27 +68,39 @@ hospitals = list(df_occupancy.columns[1::])
 # Create app
 #app = Dash(__name__)
 
-# not working...
 dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc_css])
+app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
 
 # layout
-app.layout = html.Div([
+app.layout = dbc.Container([
+    html.Br(),
     html.H1('Montréal Emergency Room Status'),
-    html.Div('Sort from highest to lowest by:'),
+    html.P('Sort from highest to lowest by:'),
     dcc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
-                   inline=True, value="Patients waiting"),
+                   inline=True,
+                   value="Patients waiting",
+                   #style={"padding": "10px", "max-width": "800px", "margin": "left"}
+                   ),
     dcc.Graph(id='graph-fig-bar'),
+    # html.P('Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
+    # html.P('Patients Total: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.'),
+    # html.P('''
+    #      Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients.
+    #      An occupancy rate of over 100% indicates that the emergency room is over capacity,
+    #      typically meaning that there are more patients than there are stretchers.
+    #      '''),
     dcc.Markdown('''
          * Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a
          physician.
-         * Patients Total: The total number of patients in the emergency room, including those 
+         * Patients Total: The total number of patients in the emergency room, including those
          who are currently waiting to be seen by a physician.
-         * Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients. 
-         An occupancy rate of over 100% indicates that the emergency room is over capacity, 
+         * Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients.
+         An occupancy rate of over 100% indicates that the emergency room is over capacity,
          typically meaning that there are more patients than there are stretchers.
          '''),
+    html.Br(),
+    html.Br(),
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
     dcc.Graph(id='graph-fig')
