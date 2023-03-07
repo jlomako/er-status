@@ -71,6 +71,7 @@ hospitals = list(df_occupancy.columns[1::])
 dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
+# ide: show table and then charts (in tabs?)
 
 # layout
 app.layout = dbc.Container([
@@ -103,7 +104,8 @@ app.layout = dbc.Container([
     html.Br(),
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
-    dcc.Graph(id='graph-fig')
+    html.Div(id='fig1-container'),
+    html.Div(id='fig2-container')
     ])
 
 
@@ -140,15 +142,18 @@ def update_graph(option):
     ).update_xaxes(showticklabels=False)
     return fig_bar
 
+
 @app.callback(
-    Output('graph-fig', 'figure'),
+    [Output('fig1-container', 'children'),
+     Output('fig2-container', 'children')],
     Input('select-hospital', 'value'))
 def update_fig(selected):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
-    fig = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
-    return fig
+    fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
+    fig2 = plot_data(df, "Date", "occupancy", "Occupancy Rate")
+    return dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)
 
 
 # Run app
