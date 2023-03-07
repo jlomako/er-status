@@ -4,7 +4,7 @@ import plotly.express as px
 import pandas as pd
 from datetime import timedelta
 
-nr_of_days = 14
+nr_of_days = 7
 
 
 def get_data(file):
@@ -65,20 +65,22 @@ options = {
 hospitals = list(df_occupancy.columns[1::])
 
 
-# Create app with bootstrap theme
+# Create interactive dash app with bootstrap theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
-# idea: show data table and then charts (in tabs?)
+# idea: show data table and then charts (in tabs/ cards?)
 
 # layout
 app.layout = dbc.Container([
     html.Br(),
     html.H1('Montréal Emergency Room Status'),
     html.P('Sort from highest to lowest by:'),
-    dbc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
-                   inline=True,
-                   value="Patients waiting"
-                   ),
+    dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
+             children=[
+                 dbc.Tab(label='Patients waiting', tab_id='patients_waiting'),
+                 dbc.Tab(label='Patients Total', tab_id='patients_total'),
+                 dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
+             ]),
     dcc.Graph(id='graph-fig-bar'),
     html.H6('Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
     html.H6('Patients Total: The total number of patients in the emergency room, '
@@ -103,16 +105,17 @@ app.layout = dbc.Container([
 
 @app.callback(
     Output('graph-fig-bar', 'figure'),
-    Input('radio-buttons', 'value'))
-def update_graph(option):
-    # old bar plot with separate plots for each option:
-    fig_bar = px.bar(df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
-       x=options[option]["sort"], y="hospital_name",
-       title=options[option]["title"],
+    # Input('radio-buttons', 'value'),
+    Input('upper-tabs', 'active_tab'))
+def update_graph(tab):
+    fig_bar = px.bar(
+       df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=tab),
+       x=tab, y="hospital_name",
+       title=tab,
        orientation='h',  # horizontal
        text_auto=True,  # show numbers
        height=700,
-       color=options[option]["sort"],
+       color=tab,
        color_continuous_scale="blues"
     ).update_layout(
         xaxis_title="",
@@ -179,6 +182,11 @@ def update_fig(selected, tab):
         return html.P('coming soon')
 
 
+# Run app
+if __name__ == '__main__':
+    app.run_server(debug=True)
+
+
 # select hospital and return 2 figures in layout:
     # html.Div(id='fig1-container'),
     # html.Div(id='fig2-container')
@@ -195,6 +203,23 @@ def update_fig(selected, tab):
 #     return dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)
 
 
-# Run app
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    ### radioItems that create bar plot with separate plots for each option:
+    ## Layout:
+    # dbc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
+    #                inline=True,
+    #                value="Patients waiting"
+    #                ),
+    ## Callback:
+    # @app.callback(
+    #     Output('graph-fig-bar', 'figure'),
+    #     Input('radio-buttons', 'value'),
+    #def update_graph(option):
+    # fig_bar = px.bar(df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
+    #    x=options[option]["sort"], y="hospital_name",
+    #    title=options[option]["title"],
+    #    orientation='h',  # horizontal
+    #    text_auto=True,  # show numbers
+    #    height=700)
+
+
+
