@@ -68,26 +68,34 @@ hospitals = list(df_occupancy.columns[1::])
 # Create interactive dash app with bootstrap theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
-# idea: show data table and then charts (in tabs/ cards?)
-
 # layout
 app.layout = dbc.Container([
     html.Br(),
     html.H1('Montréal Emergency Room Status'),
-    html.P('Sort from highest to lowest by:'),
-    dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
-             children=[
-                 dbc.Tab(label='Patients waiting', tab_id='patients_waiting'),
-                 dbc.Tab(label='Patients Total', tab_id='patients_total'),
-                 dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
-             ]),
-    dcc.Graph(id='graph-fig-bar'),
-    html.H6('Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
-    html.H6('Patients Total: The total number of patients in the emergency room, '
-            'including those who are currently waiting to be seen by a physician.'),
-    html.H6('Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied '
-            'by patients. An occupancy rate of over 100% indicates that the emergency room is over capacity, '
-            'typically meaning that there are more patients than there are stretchers.'),
+    html.H6(f"last updated: {df_occupancy['Date'].max()}",
+            style={"padding": "10px"}),
+    dbc.Card(
+        [
+            dbc.CardHeader(
+            dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
+                     children=[
+                         dbc.Tab(label='Patients waiting', tab_id='patients_waiting'),
+                         dbc.Tab(label='Patients Total', tab_id='patients_total'),
+                         dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
+                     ])
+            ),
+            dbc.CardBody(dcc.Graph(id='graph-fig-bar')),
+            dbc.CardFooter([
+                html.H6(
+                    'Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
+                html.H6('Patients Total: The total number of patients in the emergency room, '
+                        'including those who are currently waiting to be seen by a physician.'),
+                html.H6('Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied '
+                        'by patients. An occupancy rate of over 100% indicates that the emergency room is over capacity, '
+                        'typically meaning that there are more patients than there are stretchers.'),
+            ]),
+        ]
+    ),
     html.Br(),
     html.Br(),
     html.H2('Select a hospital for more information: '),
@@ -99,7 +107,9 @@ app.layout = dbc.Container([
                  dbc.Tab(label='Occupancy Rate', tab_id='tab2'),
                  dbc.Tab(label='Wait times', tab_id='tab3')
              ]),
-    html.Div(id='graph-container') # contains figures for selected hospital
+    html.Div(id='graph-container'), # contains figures for selected hospital
+    html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec", style={"padding": "10px"}),
+    html.H6("© Copyright 2023, jlomako", style={"padding": "10px"}),
     ])
 
 
@@ -107,11 +117,11 @@ app.layout = dbc.Container([
     Output('graph-fig-bar', 'figure'),
     # Input('radio-buttons', 'value'),
     Input('upper-tabs', 'active_tab'))
-def update_graph(tab):
+def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
     fig_bar = px.bar(
        df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=tab),
        x=tab, y="hospital_name",
-       title=tab,
+       #title=tab,
        orientation='h',  # horizontal
        text_auto=True,  # show numbers
        height=700,
@@ -216,10 +226,7 @@ if __name__ == '__main__':
     #def update_graph(option):
     # fig_bar = px.bar(df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
     #    x=options[option]["sort"], y="hospital_name",
-    #    title=options[option]["title"],
-    #    orientation='h',  # horizontal
-    #    text_auto=True,  # show numbers
-    #    height=700)
+    #    title=options[option]["title"])
 
 
 
