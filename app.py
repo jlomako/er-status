@@ -65,13 +65,12 @@ options = {
 hospitals = list(df_occupancy.columns[1::])
 
 
-# Create app
-#app = Dash(__name__)
+# Create app with bootstrap
 
-dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+# dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
-# ide: show table and then charts (in tabs?)
+# idea: show data table and then charts (in tabs?)
 
 # layout
 app.layout = dbc.Container([
@@ -84,13 +83,6 @@ app.layout = dbc.Container([
                    #style={"padding": "10px", "max-width": "800px", "margin": "left"}
                    ),
     dcc.Graph(id='graph-fig-bar'),
-    # html.P('Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
-    # html.P('Patients Total: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.'),
-    # html.P('''
-    #      Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients.
-    #      An occupancy rate of over 100% indicates that the emergency room is over capacity,
-    #      typically meaning that there are more patients than there are stretchers.
-    #      '''),
     dcc.Markdown('''
          * Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a
          physician.
@@ -104,8 +96,14 @@ app.layout = dbc.Container([
     html.Br(),
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
-    html.Div(id='fig1-container'),
-    html.Div(id='fig2-container')
+    html.Br(),
+    dcc.Tabs(id="tabs", value='tab1',
+             children=[
+                 dcc.Tab(label='Patient Counts', value='tab1'),
+                 dcc.Tab(label='Occupancy Rate', value='tab2'),
+                 dcc.Tab(label='Wait times', value='tab3')
+             ]),
+    html.Div(id='graph-container') # contains figures for selected hospital
     ])
 
 
@@ -143,17 +141,39 @@ def update_graph(option):
     return fig_bar
 
 
+# select hospital and return figures in tabs:
 @app.callback(
-    [Output('fig1-container', 'children'),
-     Output('fig2-container', 'children')],
-    Input('select-hospital', 'value'))
-def update_fig(selected):
+    Output('graph-container', 'children'),
+    Input('select-hospital', 'value'),
+    Input('tabs', 'value'))
+def update_fig(selected, tab):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
     fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
     fig2 = plot_data(df, "Date", "occupancy", "Occupancy Rate")
-    return dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)
+    if tab == 'tab1':
+        return dcc.Graph(figure=fig1)
+    elif tab == 'tab2':
+        return dcc.Graph(figure=fig2)
+    elif tab == 'tab3':
+        return html.H5('coming soon')
+
+
+# select hospital and return 2 figures in layout:
+    # html.Div(id='fig1-container'),
+    # html.Div(id='fig2-container')
+# @app.callback(
+#     [Output('fig1-container', 'children'),
+#      Output('fig2-container', 'children')],
+#     Input('select-hospital', 'value'))
+# def update_fig(selected):
+#     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
+#                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
+#     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
+#     fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
+#     fig2 = plot_data(df, "Date", "occupancy", "Occupancy Rate")
+#     return dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)
 
 
 # Run app
