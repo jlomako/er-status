@@ -65,9 +65,7 @@ options = {
 hospitals = list(df_occupancy.columns[1::])
 
 
-# Create app with bootstrap
-
-# dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+# Create app with bootstrap theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 
 # idea: show data table and then charts (in tabs?)
@@ -77,10 +75,9 @@ app.layout = dbc.Container([
     html.Br(),
     html.H1('Montréal Emergency Room Status'),
     html.P('Sort from highest to lowest by:'),
-    dcc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
+    dbc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
                    inline=True,
-                   value="Patients waiting",
-                   #style={"padding": "10px", "max-width": "800px", "margin": "left"}
+                   value="Patients waiting"
                    ),
     dcc.Graph(id='graph-fig-bar'),
     dcc.Markdown('''
