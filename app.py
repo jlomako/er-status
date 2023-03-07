@@ -80,15 +80,12 @@ app.layout = dbc.Container([
                    value="Patients waiting"
                    ),
     dcc.Graph(id='graph-fig-bar'),
-    dcc.Markdown('''
-         * Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a
-         physician.
-         * Patients Total: The total number of patients in the emergency room, including those
-         who are currently waiting to be seen by a physician.
-         * Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied by patients.
-         An occupancy rate of over 100% indicates that the emergency room is over capacity,
-         typically meaning that there are more patients than there are stretchers.
-         '''),
+    html.H6('Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
+    html.H6('Patients Total: The total number of patients in the emergency room, '
+            'including those who are currently waiting to be seen by a physician.'),
+    html.H6('Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied '
+            'by patients. An occupancy rate of over 100% indicates that the emergency room is over capacity, '
+            'typically meaning that there are more patients than there are stretchers.'),
     html.Br(),
     html.Br(),
     html.H2('Select a hospital for more information: '),
@@ -108,33 +105,58 @@ app.layout = dbc.Container([
     Output('graph-fig-bar', 'figure'),
     Input('radio-buttons', 'value'))
 def update_graph(option):
-    fig_bar = px.bar(
-        df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
-        x=options[option]["selection"], y="hospital_name",
-        title=options[option]["title"],
-        labels={"value": "", "variable": ""},
-        orientation='h',  # horizontal
-        text_auto=True,  # show numbers
-        height=700,
-        barmode='overlay' if options[option]["sort"] != "occupancy" else None,
-        color_discrete_sequence=['#023858', '#2c7fb8'] if options[option]["sort"] != "occupancy" else None,
-        color=options[option]["sort"] if options[option]["sort"] == "occupancy" else None,
-        color_continuous_scale="blues" if options[option]["sort"] == "occupancy" else None,
-        ).update_layout(
+    # old bar plot with separate plots for each option:
+    fig_bar = px.bar(df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
+       x=options[option]["sort"], y="hospital_name",
+       title=options[option]["title"],
+       orientation='h',  # horizontal
+       text_auto=True,  # show numbers
+       height=700,
+       color=options[option]["sort"],
+       color_continuous_scale="blues"
+    ).update_layout(
         xaxis_title="",
         yaxis_title="",
-        xaxis_fixedrange=True,  # switch off annoying zoom functions
+        xaxis_fixedrange=True,  # switch of zoom functions etc
         yaxis_fixedrange=True,
         template="plotly_white",
-        bargap=0.1,  # gap between bars
-        legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom")
+        bargap=0.1
     ).update_traces(
         textfont_size=12,
         textangle=0,
         textposition="auto",
         cliponaxis=False
-    ).update_coloraxes(showscale=False  # remove legend for color_continuous_scale
-    ).update_xaxes(showticklabels=False)
+    ).update_coloraxes(showscale=False  # remove legend
+    ).update_xaxes(showticklabels=False)  # remove y axis label
+
+    # Barplot with patient counts (patients waiting and patients total in one plot):
+    # fig_bar = px.bar(
+    #     df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
+    #     x=options[option]["selection"], y="hospital_name",
+    #     title=options[option]["title"],
+    #     labels={"value": "", "variable": ""},
+    #     orientation='h',  # horizontal
+    #     text_auto=True,  # show numbers
+    #     height=700,
+    #     barmode='overlay' if options[option]["sort"] != "occupancy" else None,
+    #     color_discrete_sequence=['#023858', '#2c7fb8'] if options[option]["sort"] != "occupancy" else None,
+    #     color=options[option]["sort"] if options[option]["sort"] == "occupancy" else None,
+    #     color_continuous_scale="blues" if options[option]["sort"] == "occupancy" else None,
+    #     ).update_layout(
+    #     xaxis_title="",
+    #     yaxis_title="",
+    #     xaxis_fixedrange=True,  # switch off annoying zoom functions
+    #     yaxis_fixedrange=True,
+    #     template="plotly_white",
+    #     bargap=0.1,  # gap between bars
+    #     legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom")
+    # ).update_traces(
+    #     textfont_size=12,
+    #     textangle=0,
+    #     textposition="auto",
+    #     cliponaxis=False
+    # ).update_coloraxes(showscale=False  # remove legend for color_continuous_scale
+    # ).update_xaxes(showticklabels=False)
     return fig_bar
 
 
