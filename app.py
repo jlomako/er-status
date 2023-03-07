@@ -94,11 +94,11 @@ app.layout = dbc.Container([
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
     html.Br(),
-    dcc.Tabs(id="tabs", value='tab1',
+    dbc.Tabs(id="tabs", active_tab='tab1',
              children=[
-                 dcc.Tab(label='Patient Counts', value='tab1'),
-                 dcc.Tab(label='Occupancy Rate', value='tab2'),
-                 dcc.Tab(label='Wait times', value='tab3')
+                 dbc.Tab(label='Patient Counts', tab_id='tab1'),
+                 dbc.Tab(label='Occupancy Rate', tab_id='tab2'),
+                 dbc.Tab(label='Wait times', tab_id='tab3')
              ]),
     html.Div(id='graph-container') # contains figures for selected hospital
     ])
@@ -142,7 +142,7 @@ def update_graph(option):
 @app.callback(
     Output('graph-container', 'children'),
     Input('select-hospital', 'value'),
-    Input('tabs', 'value'))
+    Input('tabs', 'active_tab'))
 def update_fig(selected, tab):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
@@ -154,7 +154,7 @@ def update_fig(selected, tab):
     elif tab == 'tab2':
         return dcc.Graph(figure=fig2)
     elif tab == 'tab3':
-        return html.H5('coming soon')
+        return html.P('coming soon')
 
 
 # select hospital and return 2 figures in layout:
