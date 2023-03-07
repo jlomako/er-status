@@ -32,7 +32,8 @@ def plot_data(df, x_col, y_col, label, title=None):
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
-    fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D', template="plotly_white")
+    fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D', template="plotly_white",
+                      margin=dict(l=0, r=0, t=10, b=10))
     return fig
 
 
@@ -120,7 +121,7 @@ def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
        #title=tab,
        orientation='h',  # horizontal
        text_auto=True,  # show numbers
-       height=700,
+       height=600,
        color=tab,
        color_continuous_scale="blues"
     ).update_layout(
@@ -129,7 +130,8 @@ def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
         xaxis_fixedrange=True,  # switch of zoom functions etc
         yaxis_fixedrange=True,
         template="plotly_white",
-        bargap=0.1
+        bargap=0.1,
+        margin=dict(l=0, r=0, t=10, b=10),
     ).update_traces(
         textfont_size=12,
         textangle=0,
