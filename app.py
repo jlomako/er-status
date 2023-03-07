@@ -151,7 +151,7 @@ def update_fig(selected, tab):
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
     fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
-    fig2 = plot_data(df, "Date", "occupancy", "Occupancy Rate")
+    fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate")
     if tab == 'tab1':
         return dcc.Graph(figure=fig1)
     elif tab == 'tab2':
