@@ -74,17 +74,14 @@ app.layout = dbc.Container([
     html.H1('Montréal Emergency Room Status'),
     html.H6(f"last updated: {df_occupancy['Date'].max()}",
             style={"padding": "10px"}),
-    dbc.Card(
-        [
-            dbc.CardHeader(
-            dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
-                     children=[
-                         dbc.Tab(label='Patients waiting', tab_id='patients_waiting'),
-                         dbc.Tab(label='Patients Total', tab_id='patients_total'),
-                         dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
-                     ])
-            ),
-            dbc.CardBody(dcc.Graph(id='graph-fig-bar')),
+        dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
+                 children=[
+                     dbc.Tab(label='Patients Waiting', tab_id='patients_waiting'),
+                     dbc.Tab(label='Patients Total', tab_id='patients_total'),
+                     dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
+                 ]),
+        dcc.Graph(id='graph-fig-bar'),
+        dbc.Card([
             dbc.CardFooter([
                 html.H6(
                     'Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
@@ -94,8 +91,7 @@ app.layout = dbc.Container([
                         'by patients. An occupancy rate of over 100% indicates that the emergency room is over capacity, '
                         'typically meaning that there are more patients than there are stretchers.'),
             ]),
-        ]
-    ),
+        ]),
     html.Br(),
     html.Br(),
     html.H2('Select a hospital for more information: '),
