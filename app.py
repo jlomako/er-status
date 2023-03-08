@@ -84,17 +84,14 @@ app.layout = dbc.Container([
                      dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
                  ]),
         dcc.Graph(id='graph-fig-bar'),
-        dbc.Card([
-            dbc.CardFooter([
-                html.H6(dcc.Markdown('''
-                **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
-                **Patients Total**: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.  
-                **Occupancy Rate**:The occupancy rate refers to the percentage of stretchers that are occupied by patients. An occupancy rate of over 100% 
-                indicates that the emergency room is over capacity, typically meaning that there are more patients than there are stretchers.  
-
-                '''))
-            ]),
-        ]),
+        dbc.Alert([
+            html.H6(dcc.Markdown('''
+            **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
+            **Patients Total**: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.  
+            **Occupancy Rate**: The occupancy rate refers to the percentage of stretchers that are occupied by patients. An occupancy rate of over 100% 
+            indicates that the emergency room is over capacity, typically meaning that there are more patients than there are stretchers.
+            '''))
+        ], color="primary"),
     html.Br(),
     html.Br(),
     html.H2('Select a hospital for more information: '),
@@ -107,9 +104,11 @@ app.layout = dbc.Container([
                  dbc.Tab(label='Wait times', tab_id='tab3')
              ]),
     html.Div(id='graph-container'), # contains figures for selected hospital
+    html.Br(),
     html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec",
-                style={"padding": "10px"}),
-    html.H6(children=['© Copyright 2023, ', html.A('jlomako', href="https://github.com/jlomako/"), '.']),
+                style={"paddingLeft": "10px", 'text-align': 'center'}),
+    html.H6(children=['© Copyright 2023, ', html.A('jlomako', href="https://github.com/jlomako/"), '.'],
+            style={"paddingLeft": "10px", 'text-align': 'center'}),
 ])
 
 
