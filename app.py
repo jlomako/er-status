@@ -28,7 +28,9 @@ def get_selected(df, selected, variable):
 
 
 def plot_data(df, x_col, y_col, label, title=None):
-    fig = px.line(df, x=x_col, y=y_col, labels={"value": label, "variable": ""}, title=title)
+    fig = px.line(df, x=x_col, y=y_col,
+                  color_discrete_sequence=['#1f77b4', '#ff7f0e'],
+                  labels={"value": label, "variable": ""}, title=title)
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
@@ -84,13 +86,13 @@ app.layout = dbc.Container([
         dcc.Graph(id='graph-fig-bar'),
         dbc.Card([
             dbc.CardFooter([
-                html.H6(
-                    'Patients Waiting: The number of patients in the emergency room who are waiting to be seen by a physician.'),
-                html.H6('Patients Total: The total number of patients in the emergency room, '
-                        'including those who are currently waiting to be seen by a physician.'),
-                html.H6('Occupancy Rate: The occupancy rate refers to the percentage of stretchers that are occupied '
-                        'by patients. An occupancy rate of over 100% indicates that the emergency room is over capacity, '
-                        'typically meaning that there are more patients than there are stretchers.'),
+                html.H6(dcc.Markdown('''
+                **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
+                **Patients Total**: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.  
+                **Occupancy Rate**:The occupancy rate refers to the percentage of stretchers that are occupied by patients. An occupancy rate of over 100% 
+                indicates that the emergency room is over capacity, typically meaning that there are more patients than there are stretchers.  
+
+                '''))
             ]),
         ]),
     html.Br(),
@@ -105,9 +107,10 @@ app.layout = dbc.Container([
                  dbc.Tab(label='Wait times', tab_id='tab3')
              ]),
     html.Div(id='graph-container'), # contains figures for selected hospital
-    html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec", style={"padding": "10px"}),
-    html.H6("© Copyright 2023, jlomako", style={"padding": "10px"}),
-    ])
+    html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec",
+                style={"padding": "10px"}),
+    html.H6(children=['© Copyright 2023, ', html.A('jlomako', href="https://github.com/jlomako/"), '.']),
+])
 
 
 @app.callback(
@@ -138,7 +141,8 @@ def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
         textposition="auto",
         cliponaxis=False
     ).update_coloraxes(showscale=False  # remove legend
-    ).update_xaxes(showticklabels=False)  # remove y axis label
+    ).update_xaxes(showticklabels=False, # remove y axis label
+                   showgrid=False)  # remove grid lines
 
     # Barplot with patient counts (patients waiting and patients total in one plot):
     # fig_bar = px.bar(
@@ -181,7 +185,7 @@ def update_fig(selected, tab):
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
     fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
-    fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate")
+    fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate (%)")
     if tab == 'tab1':
         return dcc.Graph(figure=fig1)
     elif tab == 'tab2':
