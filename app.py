@@ -101,9 +101,9 @@ app.layout = dbc.Container([
              children=[
                  dbc.Tab(label='Patient Counts', tab_id='tab1'),
                  dbc.Tab(label='Occupancy Rate', tab_id='tab2'),
-                 dbc.Tab(label='Wait times', tab_id='tab3')
+                 dbc.Tab(label='Wait Times', tab_id='tab3')
              ]),
-    html.Div(id='graph-container'), # contains figures for selected hospital
+    html.Div(id='graph-container'), # contains figure for selected hospital
     html.Br(),
     html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec",
                 style={"paddingLeft": "10px", 'text-align': 'center'}),
@@ -183,14 +183,30 @@ def update_fig(selected, tab):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
-    fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
+    fig1 = plot_data(df, "Date", [ "patients_total", "patients_waiting"], "Number of Patients")
     fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate (%)")
+    # plot with means patient counts over 24h:
+    df_mean_by_hour = df.groupby(df['Date'].dt.hour).mean(numeric_only=True).reset_index()
+    fig_mean = px.bar(df_mean_by_hour, x="Date", y=["patients_total", "patients_waiting"],
+                      labels={"value": "mean", "variable": ""},
+                      title=selected,
+                      height=300,
+                      barmode='overlay',
+                      color_discrete_sequence=['#1f77b4', '#ff7f0e'])
+    fig_mean.layout.xaxis.fixedrange = True
+    fig_mean.layout.yaxis.fixedrange = True
+    fig_mean.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
+    fig_mean.update_layout(xaxis_tickmode='array', xaxis_tickvals=df_mean_by_hour['Date'],
+                           xaxis_ticktext=[str(i) + ":00" for i in df_mean_by_hour['Date']],
+                           template="plotly_white", bargap=0.1,
+                           margin=dict(l=0, r=0, b=5))
+
     if tab == 'tab1':
-        return dcc.Graph(figure=fig1)
+        return dcc.Graph(figure=fig1), dcc.Graph(figure=fig_mean)
     elif tab == 'tab2':
         return dcc.Graph(figure=fig2)
     elif tab == 'tab3':
-        return html.P('coming soon')
+        return html.H6("Coming soon...")
 
 
 # Run app
