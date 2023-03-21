@@ -30,11 +30,12 @@ def get_selected(df, selected, variable):
 def plot_data(df, x_col, y_col, label, title=None):
     fig = px.line(df, x=x_col, y=y_col,
                   color_discrete_sequence=['#1f77b4', '#ff7f0e'],
-                  labels={"value": label, "variable": ""}, title=title)
+                  labels={"value": label, "variable": ""}, title=title, height=300)
     fig.layout.xaxis.fixedrange = True
     fig.layout.yaxis.fixedrange = True
     fig.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
     fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D', template="plotly_white",
+                      yaxis=dict(range=[0, 160]) if label == "Number of Patients" else dict(range=[0, 260]),
                       margin=dict(l=0, r=0, t=10, b=10))
     return fig
 
@@ -45,6 +46,7 @@ df_waiting = get_data("patients_waiting.csv")
 df_total = get_data("patients_total.csv")
 
 # DISPLAY CURRENT DATA
+# to do: correct 0 and NA in barplot
 
 # create df with latest data
 df_current = pd.merge(df_occupancy.iloc[-1, 1:].reset_index().set_axis(['hospital_name', 'occupancy'], axis=1),
@@ -75,28 +77,29 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 app.layout = dbc.Container([
     html.Br(),
     html.H1('Montréal Emergency Room Status'),
-    html.H6(f"last updated: {df_occupancy['Date'].max()}",
-            style={"padding": "10px"}),
-        dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
-                 children=[
-                     dbc.Tab(label='Patients Waiting', tab_id='patients_waiting'),
-                     dbc.Tab(label='Patients Total', tab_id='patients_total'),
-                     dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
-                 ]),
-        dcc.Graph(id='graph-fig-bar'),
-        dbc.Alert([
-            html.H6(dcc.Markdown('''
-            **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
-            **Patients Total**: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.  
-            **Occupancy Rate**: The occupancy rate refers to the percentage of stretchers that are occupied by patients. An occupancy rate of over 100% 
-            indicates that the emergency room is over capacity, typically meaning that there are more patients than there are stretchers.
-            '''))
-        ], color="primary"),
+    dbc.Alert(html.H6(f"last updated: {df_occupancy['Date'].max()}"),
+              color="primary", style={"padding": "3px"}),
+    dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
+             children=[
+                 dbc.Tab(label='Patients Waiting', tab_id='patients_waiting'),
+                 dbc.Tab(label='Patients Total', tab_id='patients_total'),
+                 dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
+             ]),
+    dcc.Graph(id='graph-fig-bar'),
+    dbc.Alert([
+        html.H6(dcc.Markdown('''
+        **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
+        **Patients Total**: The total number of patients in the emergency room, including those who are currently waiting to be seen by a physician.  
+        **Occupancy Rate**: The occupancy rate refers to the percentage of stretchers that are occupied by patients. An occupancy rate of over 100% 
+        indicates that the emergency room is over capacity, typically meaning that there are more patients than there are stretchers.
+        '''))
+    ], color="primary"),
     html.Br(),
     html.Br(),
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
     html.Br(),
+    # html.H6(), # recent data should go here
     dbc.Tabs(id="tabs", active_tab='tab1',
              children=[
                  dbc.Tab(label='Patient Counts', tab_id='tab1'),
@@ -185,11 +188,11 @@ def update_fig(selected, tab):
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
     fig1 = plot_data(df, "Date", [ "patients_total", "patients_waiting"], "Number of Patients")
     fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate (%)")
-    # plot with means patient counts over 24h:
+    # plot with mean patient counts over 24h:
     df_mean_by_hour = df.groupby(df['Date'].dt.hour).mean(numeric_only=True).reset_index()
     fig_mean = px.bar(df_mean_by_hour, x="Date", y=["patients_total", "patients_waiting"],
                       labels={"value": "mean", "variable": ""},
-                      title=selected,
+                      title="Average Patient counts over 24h",# selected,
                       height=300,
                       barmode='overlay',
                       color_discrete_sequence=['#1f77b4', '#ff7f0e'])
@@ -198,6 +201,7 @@ def update_fig(selected, tab):
     fig_mean.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
     fig_mean.update_layout(xaxis_tickmode='array', xaxis_tickvals=df_mean_by_hour['Date'],
                            xaxis_ticktext=[str(i) + ":00" for i in df_mean_by_hour['Date']],
+                           yaxis=dict(range=[0, 150]),
                            template="plotly_white", bargap=0.1,
                            margin=dict(l=0, r=0, b=5))
 
