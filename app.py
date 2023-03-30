@@ -77,8 +77,9 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 app.layout = dbc.Container([
     html.Br(),
     html.H1('Montréal Emergency Room Status'),
-    dbc.Alert(html.H6(f"last updated: {df_occupancy['Date'].max()}"),
-              color="primary", style={"padding": "3px"}),
+    html.Br(),
+    html.H5(f"last updated: {df_occupancy['Date'].max().date()} at {df_occupancy['Date'].max().hour}:{df_occupancy['Date'].max().minute} "),
+    html.Br(),
     dbc.Tabs(id="upper-tabs", active_tab='patients_waiting',
              children=[
                  dbc.Tab(label='Patients Waiting', tab_id='patients_waiting'),
@@ -104,7 +105,7 @@ app.layout = dbc.Container([
              children=[
                  dbc.Tab(label='Patient Counts', tab_id='tab1'),
                  dbc.Tab(label='Occupancy Rate', tab_id='tab2'),
-                 dbc.Tab(label='Wait Times', tab_id='tab3')
+                 # dbc.Tab(label='Wait Times', tab_id='tab3')
              ]),
     html.Div(id='graph-container'), # contains figure for selected hospital
     html.Br(),
@@ -186,7 +187,7 @@ def update_fig(selected, tab):
     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
-    fig1 = plot_data(df, "Date", [ "patients_total", "patients_waiting"], "Number of Patients")
+    fig1 = plot_data(df, "Date", ["patients_total", "patients_waiting"], "Number of Patients")
     fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate (%)")
     # plot with mean patient counts over 24h:
     df_mean_by_hour = df.groupby(df['Date'].dt.hour).mean(numeric_only=True).reset_index()
@@ -209,8 +210,8 @@ def update_fig(selected, tab):
         return dcc.Graph(figure=fig1), dcc.Graph(figure=fig_mean)
     elif tab == 'tab2':
         return dcc.Graph(figure=fig2)
-    elif tab == 'tab3':
-        return html.H6("Coming soon...")
+    # elif tab == 'tab3':
+    #     return html.H6("Coming soon...")
 
 
 # Run app
