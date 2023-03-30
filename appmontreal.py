@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import timedelta
 
 # for render deployment
-# server = appmontreal.server
+server = appmontreal.server
 
 nr_of_days = 7
 
