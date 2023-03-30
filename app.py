@@ -73,7 +73,7 @@ hospitals = list(df_occupancy.columns[1::])
 # Create interactive dash app with bootstrap theme
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
 # for render deployment
-server = appmontreal.server
+server = app.server
 
 # layout
 app.layout = dbc.Container([
