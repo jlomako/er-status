@@ -216,7 +216,7 @@ def update_fig(selected, tab):
 
 # Run app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
 
 
 # select hospital and return 2 figures in layout:
