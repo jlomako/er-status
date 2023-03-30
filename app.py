@@ -4,6 +4,8 @@ import plotly.express as px
 import pandas as pd
 from datetime import timedelta
 
+server = app.server
+
 nr_of_days = 7
 
 
@@ -147,34 +149,6 @@ def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
     ).update_xaxes(showticklabels=False, # remove y axis label
                    showgrid=False)  # remove grid lines
 
-    # Barplot with patient counts (patients waiting and patients total in one plot):
-    # fig_bar = px.bar(
-    #     df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
-    #     x=options[option]["selection"], y="hospital_name",
-    #     title=options[option]["title"],
-    #     labels={"value": "", "variable": ""},
-    #     orientation='h',  # horizontal
-    #     text_auto=True,  # show numbers
-    #     height=700,
-    #     barmode='overlay' if options[option]["sort"] != "occupancy" else None,
-    #     color_discrete_sequence=['#023858', '#2c7fb8'] if options[option]["sort"] != "occupancy" else None,
-    #     color=options[option]["sort"] if options[option]["sort"] == "occupancy" else None,
-    #     color_continuous_scale="blues" if options[option]["sort"] == "occupancy" else None,
-    #     ).update_layout(
-    #     xaxis_title="",
-    #     yaxis_title="",
-    #     xaxis_fixedrange=True,  # switch off annoying zoom functions
-    #     yaxis_fixedrange=True,
-    #     template="plotly_white",
-    #     bargap=0.1,  # gap between bars
-    #     legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom")
-    # ).update_traces(
-    #     textfont_size=12,
-    #     textangle=0,
-    #     textposition="auto",
-    #     cliponaxis=False
-    # ).update_coloraxes(showscale=False  # remove legend for color_continuous_scale
-    # ).update_xaxes(showticklabels=False)
     return fig_bar
 
 
@@ -217,38 +191,4 @@ def update_fig(selected, tab):
 # Run app
 if __name__ == '__main__':
     app.run_server(debug=False)
-
-
-# select hospital and return 2 figures in layout:
-    # html.Div(id='fig1-container'),
-    # html.Div(id='fig2-container')
-# @app.callback(
-#     [Output('fig1-container', 'children'),
-#      Output('fig2-container', 'children')],
-#     Input('select-hospital', 'value'))
-# def update_fig(selected):
-#     df = pd.merge(get_selected(df_occupancy, selected, "occupancy"),
-#                   get_selected(df_waiting, selected, "patients_waiting"), on='Date', how='outer')
-#     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
-#     fig1 = plot_data(df, "Date", ["patients_waiting", "patients_total"], "Number of Patients")
-#     fig2 = plot_data(df, "Date", "occupancy", "Occupancy Rate")
-#     return dcc.Graph(figure=fig1), dcc.Graph(figure=fig2)
-
-
-    ### radioItems that create bar plot with separate plots for each option:
-    ## Layout:
-    # dbc.RadioItems(id='radio-buttons', options=[{'label': k, 'value': k} for k in options.keys()],
-    #                inline=True,
-    #                value="Patients waiting"
-    #                ),
-    ## Callback:
-    # @app.callback(
-    #     Output('graph-fig-bar', 'figure'),
-    #     Input('radio-buttons', 'value'),
-    #def update_graph(option):
-    # fig_bar = px.bar(df_current[df_current['hospital_name'] != 'TOTAL MONTRÉAL'].sort_values(by=options[option]["sort"]),
-    #    x=options[option]["sort"], y="hospital_name",
-    #    title=options[option]["title"])
-
-
 
