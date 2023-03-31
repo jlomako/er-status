@@ -31,8 +31,6 @@ def plot_data(df, x_col, y_col, label, title=None):
     fig = px.line(df, x=x_col, y=y_col,
                   color_discrete_sequence=['#1f77b4', '#ff7f0e'],
                   labels={"value": label, "variable": ""}, title=title, height=300)
-    fig.layout.xaxis.fixedrange = True
-    fig.layout.yaxis.fixedrange = True
     fig.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
     fig.update_layout(xaxis_tickmode='auto', xaxis_dtick='1D', template="plotly_white",
                       yaxis=dict(range=[0, 160]) if label == "Number of Patients" else dict(range=[0, 260]),
@@ -88,7 +86,7 @@ app.layout = dbc.Container([
                  dbc.Tab(label='Patients Total', tab_id='patients_total'),
                  dbc.Tab(label='Occupancy Rate', tab_id='occupancy')
              ]),
-    dcc.Graph(id='graph-fig-bar'),
+    dcc.Graph(id='graph-fig-bar', config={'displayModeBar': False}),
     dbc.Alert([
         html.H6(dcc.Markdown('''
         **Patients Waiting**: The number of patients in the emergency room who are waiting to be seen by a physician.  
@@ -135,8 +133,6 @@ def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
     ).update_layout(
         xaxis_title="",
         yaxis_title="",
-        xaxis_fixedrange=True,  # switch of zoom functions etc
-        yaxis_fixedrange=True,
         template="plotly_white",
         bargap=0.1,
         margin=dict(l=0, r=0, t=10, b=10),
@@ -191,7 +187,7 @@ def update_fig(selected, tab):
     df = pd.merge(df, get_selected(df_total, selected, "patients_total"), on='Date', how='outer')
     fig1 = plot_data(df, "Date", ["patients_total", "patients_waiting"], "Number of Patients")
     fig2 = plot_data(df, "Date", ["occupancy"], "Occupancy Rate (%)")
-    # plot with mean patient counts over 24h:
+    # get mean patient counts over 24h and plot as fig_mean
     df_mean_by_hour = df.groupby(df['Date'].dt.hour).mean(numeric_only=True).reset_index()
     fig_mean = px.bar(df_mean_by_hour, x="Date", y=["patients_total", "patients_waiting"],
                       labels={"value": "mean", "variable": ""},
@@ -199,8 +195,6 @@ def update_fig(selected, tab):
                       height=300,
                       barmode='overlay',
                       color_discrete_sequence=['#1f77b4', '#ff7f0e'])
-    fig_mean.layout.xaxis.fixedrange = True
-    fig_mean.layout.yaxis.fixedrange = True
     fig_mean.update_layout(legend=dict(orientation="h", x=1, y=1, xanchor="right", yanchor="bottom"))
     fig_mean.update_layout(xaxis_tickmode='array', xaxis_tickvals=df_mean_by_hour['Date'],
                            xaxis_ticktext=[str(i) + ":00" for i in df_mean_by_hour['Date']],
@@ -208,14 +202,15 @@ def update_fig(selected, tab):
                            template="plotly_white", bargap=0.1,
                            margin=dict(l=0, r=0, b=5))
 
+
     if tab == 'tab1':
-        return dcc.Graph(figure=fig1), dcc.Graph(figure=fig_mean)
+        return dcc.Graph(figure=fig1, config={'displayModeBar': False}), html.Br(), html.H6(selected), dcc.Graph(figure=fig_mean, config={'displayModeBar': False})
     elif tab == 'tab2':
-        return dcc.Graph(figure=fig2)
+        return dcc.Graph(figure=fig2, config={'displayModeBar': False})
     # elif tab == 'tab3':
     #     return html.H6("Coming soon...")
 
 
 # Run app
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
