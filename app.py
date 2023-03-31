@@ -109,14 +109,14 @@ app.layout = dbc.Container([
     html.H2('Select a hospital for more information: '),
     dcc.Dropdown(hospitals, id='select-hospital', value='CHUM'),
     html.Br(),
-    # html.H6(), # recent data should go here
+    html.H6(id='current-hospital'), # recent data comes in here
     dbc.Tabs(id="tabs", active_tab='tab1',
              children=[
                  dbc.Tab(label='Patient Counts', tab_id='tab1'),
                  dbc.Tab(label='Occupancy Rate', tab_id='tab2'),
                  # dbc.Tab(label='Wait Times', tab_id='tab3')
              ]),
-    html.Div(id='graph-container'), # contains figure for selected hospital
+    html.Div(id='graph-container'), # contains figures for selected hospital
     html.Br(),
     html.H6("Data source: Ministère de la Santé et des Services sociaux du Québec",
                 style={"paddingLeft": "10px", 'text-align': 'center'}),
@@ -127,7 +127,6 @@ app.layout = dbc.Container([
 
 @app.callback(
     Output('graph-fig-bar', 'figure'),
-    # Input('radio-buttons', 'value'),
     Input('upper-tabs', 'active_tab'))
 def update_graph(tab): # tab = patients_waiting, patients_total or occupancy
     fig_bar = px.bar(
@@ -171,7 +170,7 @@ def update_fig(selected, tab):
     df_mean_by_hour = df.groupby(df['Date'].dt.hour).mean(numeric_only=True).reset_index()
     fig_mean = px.bar(df_mean_by_hour, x="Date", y=["patients_total", "patients_waiting"],
                       labels={"value": "mean", "variable": ""},
-                      title="Average Patient counts over 24h",# selected,
+                      #title="Average Patient counts over 24h",# selected,
                       height=300,
                       barmode='overlay',
                       color_discrete_sequence=['#1f77b4', '#ff7f0e'])
@@ -184,11 +183,26 @@ def update_fig(selected, tab):
 
 
     if tab == 'tab1':
-        return dcc.Graph(figure=fig1, config={'displayModeBar': False}), html.Br(), html.H6(selected), dcc.Graph(figure=fig_mean, config={'displayModeBar': False})
+        return dcc.Graph(figure=fig1, config={'displayModeBar': False}), html.Br(), html.H6(f"{selected}: Average Patient Counts over 24 hours"), dcc.Graph(figure=fig_mean, config={'displayModeBar': False})
     elif tab == 'tab2':
         return dcc.Graph(figure=fig2, config={'displayModeBar': False})
     # elif tab == 'tab3':
     #     return html.H6("Coming soon...")
+
+# returns current values for selected hospital:
+@app.callback(
+    Output('current-hospital', 'children'),
+    Input('select-hospital', 'value'))
+def update_hospital(selected):
+    current_values = df_current[df_current['hospital_name'] == selected]
+    return dcc.Markdown((f'''
+    **{current_values.iloc[0,0]}
+    on {df_occupancy['Date'].max().date()} at {df_occupancy['Date'].max().hour}:{df_occupancy['Date'].max().minute}**:  
+    Out of a total of **{int(current_values.iloc[0,3])}
+    ** patients in the emergency room, **{int(current_values.iloc[0,2])}
+    ** are waiting to be seen by a physician. 
+    The current occupancy rate is at **{int(current_values.iloc[0,1])}**%.  
+    '''))
 
 
 # Run app
